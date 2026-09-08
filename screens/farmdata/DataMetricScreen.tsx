@@ -235,6 +235,16 @@ export const DataMetricScreen: React.FC<DataMetricScreenProps> = ({ type }) => {
   };
 
   const { displayData, totalMonth } = processChartData();
+  const annualMetricSummary = useMemo(() => {
+    const year = Number(selectedMonth.slice(0, 4));
+    const yearItems = history.filter((item) => String(item?.date || '').startsWith(`${year}-`));
+    const total = yearItems.reduce((sum, item) => sum + Number(type === 'milk' ? item?.liters : item?.value || 0), 0);
+    return {
+      total,
+      average: yearItems.length > 0 ? total / yearItems.length : 0,
+      days: yearItems.length,
+    };
+  }, [history, selectedMonth, type]);
   const milkSummary = useMemo(
     () => buildMilkSummary(type === 'milk' ? history as DailyMilk[] : [], summaryYear),
     [history, summaryYear, type]
@@ -295,8 +305,8 @@ export const DataMetricScreen: React.FC<DataMetricScreenProps> = ({ type }) => {
     try {
       const sorted = [...dailyList].sort((a, b) => a.fullDate.localeCompare(b.fullDate));
       const rows = [
-        ['Data', conf.label, 'Unidade'],
-        ...sorted.map((item) => [item.fullDate.split('-').reverse().join('/'), Number(item.rawValue || 0), conf.unit])
+        ['Data', 'Horário', conf.label, 'Unidade'],
+        ...sorted.map((item) => [item.fullDate.split('-').reverse().join('/'), 'Não informado', Number(item.rawValue || 0), conf.unit])
       ];
       const total = sorted.reduce((sum, item) => sum + Number(item.rawValue || 0), 0);
       const average = sorted.length > 0 ? total / sorted.length : 0;
@@ -310,6 +320,7 @@ export const DataMetricScreen: React.FC<DataMetricScreenProps> = ({ type }) => {
         subtitle,
         columns: [
           { header: 'Data', width: 15 },
+          { header: 'Horário', width: 15 },
           { header: conf.label, width: 18, type: 'number' as const },
           { header: 'Unidade', width: 12 }
         ],
@@ -516,17 +527,22 @@ export const DataMetricScreen: React.FC<DataMetricScreenProps> = ({ type }) => {
         {/* Input de Dados + Data (Scrollável, não fixo) */}
         <div className="bg-white border-b-2 border-gray-200 p-4">
            <div className="mb-4 overflow-hidden rounded-lg border text-white shadow-md" style={{backgroundColor: conf.color, borderColor: conf.color}}>
-              <div className="grid grid-cols-2 divide-x divide-white/25 p-4">
+              <div className="grid grid-cols-2 divide-x divide-y divide-white/25 p-4">
                 <div className="min-w-0 pr-3">
                   <p className="mb-1 text-[11px] font-bold uppercase text-white/80">Total do mês</p>
                   <p className="break-words text-2xl font-black sm:text-3xl">{formatNumber(totalMonth)} <span className="text-base font-medium opacity-80">{conf.unit}</span></p>
                 </div>
                 <div className="min-w-0 pl-3">
-                  <p className="mb-1 text-[11px] font-bold uppercase text-white/80">{type === 'milk' ? 'Média diária' : 'Registros no mês'}</p>
-                  <p className="break-words text-2xl font-black sm:text-3xl">
-                    {type === 'milk' ? formatNumber(selectedMilkMonth?.average || 0) : dailyList.length}
-                    <span className="text-base font-medium opacity-80"> {type === 'milk' ? conf.unit : 'dias'}</span>
-                  </p>
+                  <p className="mb-1 text-[11px] font-bold uppercase text-white/80">Total do ano</p>
+                  <p className="break-words text-2xl font-black sm:text-3xl">{formatNumber(annualMetricSummary.total)} <span className="text-base font-medium opacity-80">{conf.unit}</span></p>
+                </div>
+                <div className="min-w-0 pr-3 pt-3">
+                  <p className="mb-1 text-[11px] font-bold uppercase text-white/80">Média do mês</p>
+                  <p className="break-words text-xl font-black sm:text-2xl">{formatNumber(selectedMilkMonth?.average || (dailyList.length ? totalMonth / dailyList.length : 0))} <span className="text-sm font-medium opacity-80">{conf.unit}/dia</span></p>
+                </div>
+                <div className="min-w-0 pl-3 pt-3">
+                  <p className="mb-1 text-[11px] font-bold uppercase text-white/80">Média do ano</p>
+                  <p className="break-words text-xl font-black sm:text-2xl">{formatNumber(annualMetricSummary.average)} <span className="text-sm font-medium opacity-80">{conf.unit}/dia</span></p>
                 </div>
               </div>
               {type === 'milk' && (

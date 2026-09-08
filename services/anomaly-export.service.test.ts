@@ -22,9 +22,9 @@ describe('relatório de anomalias para Excel e Pareto', () => {
 
   it('organiza as colunas detalhadas e preserva o responsável', () => {
     expect(buildAnomalyDetailRows(anomalies)).toEqual([
-      ['05/01/2026', 'Ordenha', 'Mangueira rompida', 'Substituição', 'Pendente', 'Ivone'],
-      ['10/02/2026', 'Ordenha', 'Registro travado', '', 'Resolvida', 'Gidelson'],
-      ['03/03/2026', 'Manejo', 'Cerca danificada', 'Isolamento', 'Pendente', 'Sandro']
+      ['05/01/2026', '10:00', 'Ordenha', 'Mangueira rompida', 'Substituição', 'Pendente', 'Ivone'],
+      ['10/02/2026', '10:00', 'Ordenha', 'Registro travado', '', 'Resolvida', 'Gidelson'],
+      ['03/03/2026', 'Não informado', 'Manejo', 'Cerca danificada', 'Isolamento', 'Pendente', 'Sandro']
     ]);
   });
 

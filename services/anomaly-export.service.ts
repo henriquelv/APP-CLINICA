@@ -10,6 +10,14 @@ const formatDate = (value: string): string => (
   getAnomalyDate(value)?.toLocaleDateString('pt-BR') || String(value || '')
 );
 
+const formatTime = (value: string): string => {
+  if (!value || /^\d{4}-\d{2}-\d{2}$/.test(value)) return 'Não informado';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? 'Não informado'
+    : date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+};
+
 const statusLabel = (anomaly: Anomaly): string => anomaly.resolvedAt ? 'Resolvida' : 'Pendente';
 
 const responsibleLabel = (anomaly: Anomaly): string => (
@@ -18,6 +26,7 @@ const responsibleLabel = (anomaly: Anomaly): string => (
 
 export const buildAnomalyDetailRows = (anomalies: Anomaly[]): unknown[][] => anomalies.map((item) => [
   formatDate(item.createdAt),
+  formatTime(item.createdAt),
   item.sector || 'Sem setor',
   item.description || '',
   item.immediateSolution || '',
@@ -48,6 +57,7 @@ export const buildAnomalyWorkbook = (anomalies: Anomaly[], scopeLabel: string): 
       subtitle,
       columns: [
         { header: 'Data', width: 13 },
+        { header: 'Horário', width: 12 },
         { header: 'Setor', width: 22 },
         { header: 'O que aconteceu', width: 52 },
         { header: 'Solução imediata', width: 42 },
@@ -81,7 +91,7 @@ export const exportAnomalyReport = async (
 ): Promise<ExportResult> => {
   if (format === 'csv') {
     return exportCsv([
-      ['Data', 'Setor', 'O que aconteceu', 'Solução imediata', 'Status', 'Responsável'],
+      ['Data', 'Horário', 'Setor', 'O que aconteceu', 'Solução imediata', 'Status', 'Responsável'],
       ...buildAnomalyDetailRows(anomalies)
     ], requestedName);
   }
